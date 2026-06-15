@@ -4,9 +4,48 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>World Cup Tiesheet</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script src="config.js"></script>
   </head>
   <body>
-    <h1>World Cup Tiesheet</h1>
-    <p>Coming soon.</p>
+    <header class="app-header">
+      <h1>World Cup Tiesheet</h1>
+      <nav class="nav">
+        <a href="#leaderboard" data-tab="leaderboard" class="active">Leaderboard</a>
+        <a href="#bracket" data-tab="bracket">My Bracket</a>
+        <a href="admin.html">Admin</a>
+        <span id="auth-area"></span>
+      </nav>
+    </header>
+
+    <main>
+      <section id="view-leaderboard" class="view">
+        <div class="panel">
+          <h2>Leaderboard</h2>
+          <div id="lockout-banner" class="muted" style="margin-bottom: 12px;"></div>
+          <div id="leaderboard-container">
+            <p class="muted">Loading…</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-bracket" class="view hidden">
+        <div class="panel">
+          <h2>Your bracket</h2>
+          <p class="muted" id="bracket-help">
+            Pick the winner of each match. Your champion pick is locked all the
+            way to the final.
+          </p>
+          <div id="bracket-container">
+            <p class="muted">Sign in with Google to fill in your bracket.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="modal-root"></div>
+    <div id="toast-root"></div>
+
+    <script type="module" src="assets/app.js"></script>
   </body>
 </html>

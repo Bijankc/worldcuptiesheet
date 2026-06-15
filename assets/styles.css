@@ -1,0 +1,163 @@
+:root {
+  --bg: #0b1020;
+  --panel: #131a30;
+  --panel-2: #1a2240;
+  --border: #2a335a;
+  --text: #e8ecf6;
+  --muted: #98a2c3;
+  --accent: #4f8cff;
+  --good: #3ecf8e;
+  --bad: #ff5a5f;
+  --gold: #ffcc4d;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+header.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 24px; border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+header.app-header h1 { font-size: 18px; margin: 0; font-weight: 600; }
+header.app-header .nav { display: flex; gap: 16px; align-items: center; }
+header.app-header .nav a { color: var(--muted); font-size: 14px; }
+header.app-header .nav a.active { color: var(--text); }
+
+main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+button, .btn {
+  background: var(--accent); color: white; border: 0;
+  padding: 9px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;
+  font-weight: 500;
+}
+button:hover, .btn:hover { filter: brightness(1.1); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.secondary { background: var(--panel-2); border: 1px solid var(--border); }
+
+.panel {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 18px; margin-bottom: 18px;
+}
+.panel h2 { margin: 0 0 14px; font-size: 16px; font-weight: 600; }
+
+.muted { color: var(--muted); font-size: 14px; }
+.hidden { display: none !important; }
+
+/* Leaderboard ----------------------------------------------------------- */
+table.leaderboard {
+  width: 100%; border-collapse: collapse;
+}
+table.leaderboard th, table.leaderboard td {
+  text-align: left; padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+table.leaderboard th { color: var(--muted); font-weight: 500; font-size: 13px; }
+table.leaderboard td.rank { width: 50px; color: var(--muted); }
+table.leaderboard td.pts { text-align: right; width: 80px; font-variant-numeric: tabular-nums; }
+table.leaderboard tr.me td { background: rgba(79, 140, 255, 0.07); }
+
+.flag {
+  display: inline-block;
+  font-size: 11px; font-weight: 700;
+  background: var(--panel-2); border: 1px solid var(--border);
+  padding: 2px 6px; border-radius: 4px;
+  margin-right: 6px; vertical-align: middle;
+  letter-spacing: 0.5px;
+}
+
+/* Bracket --------------------------------------------------------------- */
+.bracket {
+  display: flex; gap: 30px; overflow-x: auto; padding: 10px 4px 20px;
+}
+.bracket-col {
+  display: flex; flex-direction: column;
+  min-width: 200px;
+}
+.bracket-col h3 {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--muted); margin: 0 0 12px; font-weight: 600;
+}
+.bracket-col .matches { display: flex; flex-direction: column; flex: 1; justify-content: space-around; }
+.match {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px; margin: 6px 0;
+  min-height: 64px;
+}
+.team-slot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 14px;
+  border: 1px solid transparent;
+}
+.team-slot:hover { background: var(--panel-2); }
+.team-slot.selected { background: rgba(79, 140, 255, 0.18); border-color: var(--accent); }
+.team-slot.actual-winner { border-color: var(--good); }
+.team-slot.locked { cursor: not-allowed; opacity: 0.85; }
+.team-slot .name { flex: 1; }
+.team-slot.tbd { color: var(--muted); font-style: italic; }
+
+.match.correct .team-slot.selected { border-color: var(--good); background: rgba(62, 207, 142, 0.15); }
+.match.wrong .team-slot.selected { border-color: var(--bad); background: rgba(255, 90, 95, 0.12); }
+.match.champion-locked { border-color: var(--gold); }
+
+/* Popup / modal -------------------------------------------------------- */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.modal {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 24px; width: min(520px, 90vw);
+  max-height: 80vh; overflow: auto;
+}
+.modal h2 { margin: 0 0 12px; }
+.modal .country-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px; margin: 14px 0;
+}
+.modal .country-grid button {
+  background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+  padding: 8px 10px; border-radius: 6px; text-align: left; font-size: 13px;
+}
+.modal .country-grid button.selected { background: var(--accent); border-color: var(--accent); }
+
+input[type=text], input[type=password] {
+  background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+  padding: 8px 10px; border-radius: 6px; font-size: 14px; width: 100%;
+}
+
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--panel-2); border: 1px solid var(--border);
+  padding: 10px 16px; border-radius: 6px; font-size: 14px;
+  z-index: 200;
+}
+.toast.error { border-color: var(--bad); }
+.toast.success { border-color: var(--good); }
+
+/* Admin ---------------------------------------------------------------- */
+.admin-matches { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.admin-match {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; padding: 12px;
+}
+.admin-match h4 { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+.admin-match select, .admin-match input {
+  width: 100%; margin-top: 4px;
+  background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--border); padding: 6px 8px; border-radius: 4px;
+}
+.admin-match .row { display: flex; gap: 8px; align-items: center; }
+.admin-match label { font-size: 12px; color: var(--muted); flex: 1; }

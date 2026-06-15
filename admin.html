@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>World Cup Tiesheet — Admin</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script src="config.js"></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Admin</h1>
+      <nav class="nav">
+        <a href="index.html">← Back to leaderboard</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="login-view" class="panel" style="max-width: 420px; margin: 40px auto;">
+        <h2>Admin sign-in</h2>
+        <p class="muted">Enter the admin password to manage matches.</p>
+        <form id="login-form">
+          <input type="password" id="admin-password" placeholder="Password" autocomplete="current-password" />
+          <button type="submit" style="margin-top: 12px;">Sign in</button>
+        </form>
+      </section>
+
+      <section id="admin-view" class="hidden">
+        <div class="panel">
+          <h2>Match results</h2>
+          <p class="muted">
+            Set the team lineup for each match and pick the actual winner.
+            Updates push to the leaderboard immediately.
+          </p>
+          <div id="admin-matches" class="admin-matches"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Predictions lockout</h2>
+          <p class="muted">Date/time after which predictions can no longer be edited.</p>
+          <div class="row" style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" id="lockout-input" placeholder="2026-07-01T00:00:00Z" />
+            <button id="save-lockout">Save</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast-root"></div>
+
+    <script type="module" src="assets/admin.js"></script>
+  </body>
+</html>
