@@ -3,6 +3,7 @@ import {
   TEAMS, TEAM_BY_CODE, GROUPS,
   R32_FIXTURES, R32_SOURCE_GROUPS,
   ROUND_OF, nextMatch, feederMatches,
+  flagHtml,
 } from './data.js';
 
 const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
@@ -221,7 +222,7 @@ function showChampionPopup() {
           <div class="country-grid">
             ${TEAMS.map(t => `
               <button data-code="${t.code}" class="${chosen === t.code ? 'selected' : ''}">
-                <span class="flag">${t.flag}</span>${escape(t.name)}
+                ${flagHtml(t.code)}${escape(t.name)}
               </button>`).join('')}
           </div>
           <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
@@ -297,7 +298,7 @@ async function renderLeaderboard() {
           return `<tr class="${isMe ? 'me' : ''}">
             <td class="rank">${i + 1}</td>
             <td>${escape(row.display_name)}</td>
-            <td>${champ ? `<span class="flag">${champ.flag}</span>${escape(champ.name)}` : '—'}</td>
+            <td>${champ ? `${flagHtml(row.champion_country)}${escape(champ.name)}` : '—'}</td>
             <td class="pts">${row.points}</td>
           </tr>`;
         }).join('')}
@@ -387,7 +388,7 @@ function matchHtml(m) {
     if (!isPredictionsOpen()) cls.push('locked');
     const attrs = isPredictionsOpen() ? `data-r32-pick="${m.id}"` : '';
     const content = t
-      ? `<span class="name"><span class="flag">${t.flag}</span>${escape(t.name)}</span>`
+      ? `<span class="name">${flagHtml(predicted)}${escape(t.name)}</span>`
       : `<span class="name" style="font-style:italic;">Pick a team…</span>`;
     return `<div class="match ${matchClass}">
       <div class="muted" style="font-size:11px; padding:0 4px 4px;">${escape(fixtureLabel)}</div>
@@ -412,7 +413,7 @@ function matchHtml(m) {
     const t = TEAM_BY_CODE[code] || { name: code, flag: '?' };
     const attrs = open ? `data-pick="${code}" data-match="${m.id}"` : '';
     return `<div class="${slotClass(code)}" ${attrs}>
-      <span class="name"><span class="flag">${t.flag}</span>${escape(t.name)}</span>
+      <span class="name">${flagHtml(code)}${escape(t.name)}</span>
     </div>`;
   };
 
@@ -485,7 +486,7 @@ function showTeamPicker(matchId) {
               if (!g) return '';
               const teamsHere = g.teams.filter(c => visibleTeams.includes(c));
               if (teamsHere.length === 0) return '';
-              return `<div style="grid-column: 1 / -1; font-size:11px; color:var(--muted); margin-top:6px; text-transform:uppercase; letter-spacing:1px;">Group ${escape(label)}</div>` +
+              return `<div style="grid-column: 1 / -1; font-size:11px; color:var(--muted); margin-top:6px; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Group ${escape(label)}</div>` +
                 teamsHere.map(code => {
                   const t = TEAM_BY_CODE[code] || { code, name: code, flag: '?' };
                   const used = usedElsewhere.has(code);
@@ -493,7 +494,7 @@ function showTeamPicker(matchId) {
                     class="${current === code ? 'selected' : ''}"
                     ${used ? 'disabled style="opacity:0.4;"' : ''}
                     title="${used ? 'Already picked in another R32 match' : ''}">
-                    <span class="flag">${t.flag}</span>${escape(t.name)}
+                    ${flagHtml(code)}${escape(t.name)}
                   </button>`;
                 }).join('');
             }).join('')}

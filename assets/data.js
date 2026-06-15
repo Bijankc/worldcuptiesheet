@@ -55,6 +55,23 @@ export const TEAMS = [
 
 export const TEAM_BY_CODE = Object.fromEntries(TEAMS.map(t => [t.code, t]));
 
+// Returns a hosted flag image URL for a team. Uses flagcdn.com (free, no key).
+// England and Scotland get the GB subdivision slugs.
+export function flagUrl(code) {
+  const team = TEAM_BY_CODE[code];
+  if (!team) return null;
+  const f = (team.flag || '').toLowerCase();
+  if (f === 'eng') return 'https://flagcdn.com/w40/gb-eng.png';
+  if (f === 'sco') return 'https://flagcdn.com/w40/gb-sct.png';
+  if (!f) return null;
+  return `https://flagcdn.com/w40/${f}.png`;
+}
+
+export function flagHtml(code) {
+  const url = flagUrl(code);
+  return url ? `<img class="flag" src="${url}" alt="" loading="lazy" />` : '';
+}
+
 // 2026 World Cup groups — actual draw. Each list is in current standings order
 // where known (group winners first), otherwise tournament-order.
 export const GROUPS = [

@@ -33,10 +33,44 @@
         <div class="panel">
           <h2>Your bracket</h2>
           <p class="muted" id="bracket-help">
-            Pick the winner of each match. Tap a Round of 32 slot to pick a
-            team from the groups feeding it. Your champion pick is locked all
-            the way to the final.
+            Pick the winner of each match. Your champion pick is auto-locked
+            to win every match it's in, all the way to the final.
           </p>
+          <details class="how-it-works">
+            <summary>How does the Round of 32 work?</summary>
+            <div class="how-body">
+              <p>The 2026 World Cup has 12 groups (A–L). Top 2 from each
+              group plus the 8 best third-placed teams advance — that's 32
+              teams in the Round of 32, paired in 16 matches.</p>
+              <p>FIFA labels each R32 slot with a <strong>group position
+              code</strong>:</p>
+              <ul>
+                <li><code>1A</code> = winner of Group A</li>
+                <li><code>2A</code> = runner-up of Group A</li>
+                <li><code>3ABCDF</code> = a best-third-placed team from one of
+                Groups A / B / C / D / F</li>
+              </ul>
+              <p>So a card like <code>2A vs 2B</code> means the runner-up of
+              Group A plays the runner-up of Group B. Click the card to open
+              the picker — it shows every team that could fill either slot
+              (8 teams for a simple match like <code>2A vs 2B</code>, up to
+              ~24 for a match with a best-third slot). Pick the team you
+              think wins.</p>
+              <p>Your pick:</p>
+              <ul>
+                <li>shows up highlighted on the card</li>
+                <li>automatically advances into the right R16 slot</li>
+                <li>can be changed any time before the lockout — click it
+                again to clear</li>
+              </ul>
+              <p>R16 → QF → SF → Final all cascade from your R32 picks. The
+              picker only opens for R32; for later rounds, click directly on
+              either of the two teams in the match.</p>
+              <p><strong>Scoring:</strong> +2 per correct R32 pick, +3 per
+              correct R16 / QF / SF / Final pick, +10 bonus if your popup
+              champion is the actual tournament winner.</p>
+            </div>
+          </details>
           <div id="bracket-container">
             <p class="muted">Sign in with Google to fill in your bracket.</p>
           </div>
