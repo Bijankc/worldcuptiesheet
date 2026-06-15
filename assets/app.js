@@ -184,16 +184,18 @@ function showChampionPopup() {
   render();
 }
 
-// Try to auto-lock the champion's wins for any matches where they're already
-// in the lineup. Safe to call multiple times — does nothing if predictions
-// are closed or the champion isn't in any match yet.
+// Walk the bracket in order; any time the champion sits in a slot (either set
+// by admin in team_home/team_away, or cascaded from an earlier predicted win),
+// upsert champion as the winner of that match. Safe to call repeatedly.
 async function autoLockChampionPath(code) {
   if (!isPredictionsOpen()) return;
-  const championMatches = state.matches.filter(m =>
-    m.team_home === code || m.team_away === code
-  );
-  for (const m of championMatches) {
-    await upsertPrediction(m.id, code, { silent: true });
+  const sorted = [...state.matches].sort((a, b) => a.id - b.id);
+  for (const m of sorted) {
+    const home = teamInSlot(m, 'home');
+    const away = teamInSlot(m, 'away');
+    if ((home === code || away === code) && state.predictions[m.id] !== code) {
+      await upsertPrediction(m.id, code, { silent: true });
+    }
   }
 }
 
@@ -277,6 +279,12 @@ function renderBracket() {
       onPickWinner(matchId, team);
     });
   });
+  container.querySelectorAll('[data-r32-pick]').forEach(el => {
+    el.addEventListener('click', () => {
+      const matchId = +el.dataset.r32Pick;
+      showTeamPicker(matchId);
+    });
+  });
 }
 
 function matchHtml(m) {
@@ -287,6 +295,28 @@ function matchHtml(m) {
   const lockedByChamp = champ && (home === champ || away === champ);
   const open = isPredictionsOpen() && !lockedByChamp;
   const hasResult = !!m.winner;
+  // R32 matches where admin hasn't set a lineup let the user pick any team.
+  const r32FreePick = m.round === 'R32' && !m.team_home && !m.team_away;
+
+  const matchClass = (() => {
+    if (!hasResult || !predicted) return '';
+    return predicted === m.winner ? 'correct' : 'wrong';
+  })();
+
+  if (r32FreePick) {
+    const t = predicted ? (TEAM_BY_CODE[predicted] || { name: predicted, flag: '?' }) : null;
+    const cls = ['team-slot'];
+    if (predicted) cls.push('selected');
+    if (hasResult && m.winner === predicted) cls.push('actual-winner');
+    if (!isPredictionsOpen()) cls.push('locked');
+    const attrs = isPredictionsOpen() ? `data-r32-pick="${m.id}"` : '';
+    const content = t
+      ? `<span class="name"><span class="flag">${t.flag}</span>${escape(t.name)}</span>`
+      : `<span class="name" style="font-style:italic;">Pick a team…</span>`;
+    return `<div class="match ${matchClass}">
+      <div class="${cls.join(' ')}" ${attrs}>${content}</div>
+    </div>`;
+  }
 
   const slotClass = (code) => {
     if (!code) return 'team-slot tbd';
@@ -298,14 +328,9 @@ function matchHtml(m) {
     return cls.join(' ');
   };
 
-  const matchClass = (() => {
-    if (!hasResult || !predicted) return '';
-    return predicted === m.winner ? 'correct' : 'wrong';
-  })();
-
   const slotHtml = (code, side) => {
     if (!code) {
-      return `<div class="team-slot tbd"><span class="name">${side === 'home' ? 'TBD' : 'TBD'}</span></div>`;
+      return `<div class="team-slot tbd"><span class="name">TBD</span></div>`;
     }
     const t = TEAM_BY_CODE[code] || { name: code, flag: '?' };
     const attrs = open ? `data-pick="${code}" data-match="${m.id}"` : '';
@@ -318,6 +343,83 @@ function matchHtml(m) {
     ${slotHtml(home, 'home')}
     ${slotHtml(away, 'away')}
   </div>`;
+}
+
+// Modal: pick any of the 48 teams as the winner of an R32 match.
+// Excludes teams already picked in other R32 matches (each team can only be in
+// the bracket once).
+function showTeamPicker(matchId) {
+  const root = document.getElementById('modal-root');
+  const usedElsewhere = new Set(
+    state.matches
+      .filter(m => m.round === 'R32' && m.id !== matchId && state.predictions[m.id])
+      .map(m => state.predictions[m.id])
+  );
+  const current = state.predictions[matchId] || null;
+
+  function render() {
+    root.innerHTML = `
+      <div class="modal-backdrop">
+        <div class="modal">
+          <h2>Pick a team</h2>
+          <p class="muted">Pick the team you predict to win this Round of 32 match.</p>
+          <div class="country-grid">
+            ${TEAMS.map(t => {
+              const used = usedElsewhere.has(t.code);
+              return `<button data-code="${t.code}"
+                class="${current === t.code ? 'selected' : ''}"
+                ${used ? 'disabled style="opacity:0.4;"' : ''}
+                title="${used ? 'Already picked in another R32 match' : ''}">
+                <span class="flag">${t.flag}</span>${escape(t.name)}
+              </button>`;
+            }).join('')}
+          </div>
+          <div style="display:flex; justify-content:space-between; gap:8px; margin-top:12px;">
+            <button class="secondary" id="clear-r32" ${current ? '' : 'disabled'}>Clear pick</button>
+            <button class="secondary" id="cancel-r32">Cancel</button>
+          </div>
+        </div>
+      </div>`;
+    root.querySelectorAll('.country-grid button:not([disabled])').forEach(b => {
+      b.onclick = async () => {
+        const code = b.dataset.code;
+        root.innerHTML = '';
+        await onPickWinner(matchId, code);
+      };
+    });
+    document.getElementById('cancel-r32').onclick = () => { root.innerHTML = ''; };
+    document.getElementById('clear-r32').onclick = async () => {
+      root.innerHTML = '';
+      await clearPrediction(matchId);
+    };
+  }
+  render();
+}
+
+async function clearPrediction(matchId) {
+  delete state.predictions[matchId];
+  await sb.from('predictions').delete()
+    .eq('user_id', state.user.id).eq('match_id', matchId);
+  // Drop any downstream picks that depended on this slot.
+  let current = matchId;
+  while (true) {
+    const next = nextMatch(current);
+    if (!next) break;
+    const downstreamPick = state.predictions[next.id];
+    if (downstreamPick) {
+      const downstream = state.matches.find(m => m.id === next.id);
+      const h = teamInSlot(downstream, 'home');
+      const a = teamInSlot(downstream, 'away');
+      if (downstreamPick !== h && downstreamPick !== a) {
+        delete state.predictions[next.id];
+        await sb.from('predictions').delete()
+          .eq('user_id', state.user.id).eq('match_id', next.id);
+      }
+    }
+    current = next.id;
+  }
+  renderBracket();
+  await renderLeaderboard();
 }
 
 // Pick a team to fill a slot in match m. Lineup priorities:
@@ -336,6 +438,11 @@ async function onPickWinner(matchId, code) {
   await upsertPrediction(matchId, code);
   // Cascade: any downstream prediction that no longer matches the path is cleared.
   cascadeClearStalePredictions(matchId, code);
+  // Re-run the champion lock: as soon as the champion lands in any downstream
+  // match (via a fresh R32 pick), auto-pick them to keep winning.
+  if (state.profile?.champion_country) {
+    await autoLockChampionPath(state.profile.champion_country);
+  }
   renderBracket();
   await renderLeaderboard();
 }
