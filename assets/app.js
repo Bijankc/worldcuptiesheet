@@ -559,6 +559,11 @@ function teamInSlot(m, side) {
 }
 
 async function onPickWinner(matchId, code) {
+  // Toggle: clicking the already-picked team clears it.
+  if (state.predictions[matchId] === code) {
+    await clearPrediction(matchId);
+    return;
+  }
   await upsertPrediction(matchId, code);
   // Cascade: any downstream prediction that no longer matches the path is cleared.
   cascadeClearStalePredictions(matchId, code);
