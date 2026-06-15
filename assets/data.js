@@ -72,15 +72,62 @@ export const GROUPS = [
   { label: 'L', teams: ['CRO', 'ENG', 'GHA', 'PAN'] },
 ];
 
-// Maps each R32 match (1..16) to the group label whose teams can be picked
-// in that slot. 12 groups × 1 R32 match each + 4 extra matches for the "best
-// third-placed" qualifiers (assigned here to A/B/C/D as a default).
-export const R32_GROUP_BY_MATCH = {
-   1: 'A',  2: 'B',  3: 'C',  4: 'D',
-   5: 'E',  6: 'F',  7: 'G',  8: 'H',
-   9: 'I', 10: 'J', 11: 'K', 12: 'L',
-  13: 'A', 14: 'B', 15: 'C', 16: 'D',
+// Actual 2026 R32 fixtures from FIFA. Each entry lists the group positions of
+// the two teams in that match — e.g. '2A' = runner-up of Group A,
+// '3ABCDF' = best third-placed from one of Groups A/B/C/D/F.
+// Source groups (the union of group letters mentioned in home + away) drives
+// which teams the user can pick in that R32 slot.
+export const R32_FIXTURES = {
+   1: { home: '2A',     away: '2B' },
+   2: { home: '1C',     away: '2F' },
+   3: { home: '1E',     away: '3ABCDF' },
+   4: { home: '1F',     away: '2C' },
+   5: { home: '2E',     away: '2I' },
+   6: { home: '1I',     away: '3CDFGH' },
+   7: { home: '1A',     away: '3CEFHI' },
+   8: { home: '1L',     away: '3EHIJK' },
+   9: { home: '1G',     away: '3AEHIJ' },
+  10: { home: '1D',     away: '3BEFIJ' },
+  11: { home: '1H',     away: '2J' },
+  12: { home: '2K',     away: '2L' },
+  13: { home: '1B',     away: '3EFGIJ' },
+  14: { home: '2D',     away: '2G' },
+  15: { home: '1J',     away: '2H' },
+  16: { home: '1K',     away: '3DEIJL' },
 };
+
+// Set of group letters that could feed each R32 match (derived from fixtures).
+function groupsFor(slotLabel) {
+  // Strip the leading rank digit ('1', '2', or '3') — the rest is group letters.
+  return new Set(slotLabel.replace(/^\d/, '').split(''));
+}
+export const R32_SOURCE_GROUPS = Object.fromEntries(
+  Object.entries(R32_FIXTURES).map(([id, fx]) => {
+    const set = new Set([...groupsFor(fx.home), ...groupsFor(fx.away)]);
+    return [+id, [...set].sort()];
+  })
+);
+
+// Actual feeder edges from FIFA: which two earlier matches feed each match.
+// Differs from the naive "consecutive pairs" rule, especially for R32→R16
+// (M73+M75→R16#1, M74+M77→R16#2, …) and the QF #2/#3 swap.
+export const MATCH_FEEDERS = {
+  17: [1, 3],   18: [2, 5],   19: [4, 6],   20: [7, 8],
+  21: [11, 12], 22: [9, 10],  23: [14, 16], 24: [13, 15],
+  25: [17, 18], 26: [21, 22], 27: [19, 20], 28: [23, 24],
+  29: [25, 26], 30: [27, 28],
+  31: [29, 30],
+};
+
+// Inverse of MATCH_FEEDERS — built once at module load.
+export const NEXT_MATCH = (() => {
+  const out = {};
+  for (const [next, feeders] of Object.entries(MATCH_FEEDERS)) {
+    out[feeders[0]] = { id: +next, slot: 'home' };
+    out[feeders[1]] = { id: +next, slot: 'away' };
+  }
+  return out;
+})();
 
 // Bracket: 31 matches in IDs 1..31. See supabase/schema.sql for the layout.
 // Helpers below compute round + parent/child relationships from the ID alone.
@@ -96,41 +143,11 @@ export const POINTS_FOR_ROUND = (round) => (round === 'R32' ? 2 : 3);
 export const CHAMPION_BONUS = 10;
 
 // Match that the winner of `id` advances into, plus the slot they fill.
-//   slot: 'home' | 'away'
 export function nextMatch(id) {
-  if (id === 31) return null;
-  if (id <= 16) {
-    const next = 16 + Math.ceil(id / 2);
-    return { id: next, slot: id % 2 === 1 ? 'home' : 'away' };
-  }
-  if (id <= 24) {
-    const local = id - 16; // 1..8
-    const next = 24 + Math.ceil(local / 2);
-    return { id: next, slot: local % 2 === 1 ? 'home' : 'away' };
-  }
-  if (id <= 28) {
-    const local = id - 24; // 1..4
-    const next = 28 + Math.ceil(local / 2);
-    return { id: next, slot: local % 2 === 1 ? 'home' : 'away' };
-  }
-  // SF (29, 30) → F (31)
-  return { id: 31, slot: id === 29 ? 'home' : 'away' };
+  return NEXT_MATCH[id] || null;
 }
 
-// Inverse: which two earlier matches feed into `id`?
+// Which two earlier matches feed into `id`? Null for R32 (no feeders).
 export function feederMatches(id) {
-  if (id <= 16) return null; // R32 has no feeders
-  if (id <= 24) {
-    const local = id - 16; // 1..8
-    return [2 * local - 1, 2 * local];
-  }
-  if (id <= 28) {
-    const local = id - 24; // 1..4
-    return [16 + 2 * local - 1, 16 + 2 * local];
-  }
-  if (id <= 30) {
-    const local = id - 28; // 1..2
-    return [24 + 2 * local - 1, 24 + 2 * local];
-  }
-  return [29, 30]; // F
+  return MATCH_FEEDERS[id] || null;
 }

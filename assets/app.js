@@ -1,5 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
-import { TEAMS, TEAM_BY_CODE, GROUPS, R32_GROUP_BY_MATCH, ROUND_OF, nextMatch, feederMatches } from './data.js';
+import {
+  TEAMS, TEAM_BY_CODE, GROUPS,
+  R32_FIXTURES, R32_SOURCE_GROUPS,
+  ROUND_OF, nextMatch, feederMatches,
+} from './data.js';
 
 const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -321,7 +325,8 @@ function matchHtml(m) {
 
   if (r32FreePick) {
     const t = predicted ? (TEAM_BY_CODE[predicted] || { name: predicted, flag: '?' }) : null;
-    const groupLabel = R32_GROUP_BY_MATCH[m.id];
+    const fx = R32_FIXTURES[m.id];
+    const fixtureLabel = fx ? `${fx.home} vs ${fx.away}` : '';
     const cls = ['team-slot'];
     if (predicted) cls.push('selected');
     if (hasResult && m.winner === predicted) cls.push('actual-winner');
@@ -331,7 +336,7 @@ function matchHtml(m) {
       ? `<span class="name"><span class="flag">${t.flag}</span>${escape(t.name)}</span>`
       : `<span class="name" style="font-style:italic;">Pick a team…</span>`;
     return `<div class="match ${matchClass}">
-      <div class="muted" style="font-size:11px; padding:0 4px 4px;">From Group ${escape(groupLabel || '?')}</div>
+      <div class="muted" style="font-size:11px; padding:0 4px 4px;">${escape(fixtureLabel)}</div>
       <div class="${cls.join(' ')}" ${attrs}>${content}</div>
     </div>`;
   }
@@ -363,14 +368,17 @@ function matchHtml(m) {
   </div>`;
 }
 
-// Modal: pick a team from the group this R32 match is scoped to.
+// Modal: pick a team from any of the groups feeding this R32 match.
 // Excludes teams already picked in other R32 matches (each team can only be
 // in the bracket once).
 function showTeamPicker(matchId) {
   const root = document.getElementById('modal-root');
-  const groupLabel = R32_GROUP_BY_MATCH[matchId];
-  const group = GROUPS.find(g => g.label === groupLabel);
-  const pool = group ? group.teams : TEAMS.map(t => t.code);
+  const sourceGroups = R32_SOURCE_GROUPS[matchId] || [];
+  const fx = R32_FIXTURES[matchId];
+  const pool = sourceGroups.flatMap(label => {
+    const g = GROUPS.find(x => x.label === label);
+    return g ? g.teams : [];
+  });
   const usedElsewhere = new Set(
     state.matches
       .filter(m => m.round === 'R32' && m.id !== matchId && state.predictions[m.id])
@@ -382,18 +390,25 @@ function showTeamPicker(matchId) {
     root.innerHTML = `
       <div class="modal-backdrop">
         <div class="modal">
-          <h2>Pick a team — Group ${escape(groupLabel || '?')}</h2>
-          <p class="muted">Pick a team from this group to advance from Round of 32 match ${matchId}.</p>
+          <h2>Pick a team — ${escape(fx ? `${fx.home} vs ${fx.away}` : `R32 match ${matchId}`)}</h2>
+          <p class="muted">Choose any team from ${sourceGroups.length > 1
+            ? `Groups ${sourceGroups.join(', ')}`
+            : `Group ${sourceGroups[0] ?? '?'}`}.</p>
           <div class="country-grid">
-            ${pool.map(code => {
-              const t = TEAM_BY_CODE[code] || { code, name: code, flag: '?' };
-              const used = usedElsewhere.has(code);
-              return `<button data-code="${code}"
-                class="${current === code ? 'selected' : ''}"
-                ${used ? 'disabled style="opacity:0.4;"' : ''}
-                title="${used ? 'Already picked in another R32 match' : ''}">
-                <span class="flag">${t.flag}</span>${escape(t.name)}
-              </button>`;
+            ${sourceGroups.map(label => {
+              const g = GROUPS.find(x => x.label === label);
+              if (!g) return '';
+              return `<div style="grid-column: 1 / -1; font-size:11px; color:var(--muted); margin-top:6px; text-transform:uppercase; letter-spacing:1px;">Group ${escape(label)}</div>` +
+                g.teams.map(code => {
+                  const t = TEAM_BY_CODE[code] || { code, name: code, flag: '?' };
+                  const used = usedElsewhere.has(code);
+                  return `<button data-code="${code}"
+                    class="${current === code ? 'selected' : ''}"
+                    ${used ? 'disabled style="opacity:0.4;"' : ''}
+                    title="${used ? 'Already picked in another R32 match' : ''}">
+                    <span class="flag">${t.flag}</span>${escape(t.name)}
+                  </button>`;
+                }).join('');
             }).join('')}
           </div>
           <div style="display:flex; justify-content:space-between; gap:8px; margin-top:12px;">
