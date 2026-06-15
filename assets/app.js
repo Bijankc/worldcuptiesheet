@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
-import { TEAMS, TEAM_BY_CODE, ROUND_OF, nextMatch, feederMatches } from './data.js';
+import { TEAMS, TEAM_BY_CODE, GROUPS, ROUND_OF, nextMatch, feederMatches } from './data.js';
 
 const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -46,9 +46,25 @@ async function refreshAll() {
   }
   renderAuthArea();
   renderLockoutBanner();
+  renderGroups();
   await renderLeaderboard();
   renderBracket();
   if (state.user && state.profile === null) showChampionPopup();
+}
+
+function renderGroups() {
+  const container = document.getElementById('groups-container');
+  if (!container) return;
+  container.innerHTML = GROUPS.map(g => `
+    <div class="group-card">
+      <div class="label">Group ${escape(g.label)}</div>
+      <ul>
+        ${g.teams.map(code => {
+          const t = TEAM_BY_CODE[code] || { name: code, flag: '?' };
+          return `<li><span class="flag">${t.flag}</span>${escape(t.name)}</li>`;
+        }).join('')}
+      </ul>
+    </div>`).join('');
 }
 
 // ---------------------------------------------------------------------------

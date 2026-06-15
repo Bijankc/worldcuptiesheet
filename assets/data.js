@@ -63,6 +63,24 @@ export const TEAMS = [
 
 export const TEAM_BY_CODE = Object.fromEntries(TEAMS.map(t => [t.code, t]));
 
+// 2026 World Cup groups (12 groups of 4). The codes match TEAMS above.
+// Update freely to match the actual draw — this is reference data only,
+// no scoring depends on it.
+export const GROUPS = [
+  { label: 'A', teams: ['MEX', 'COL', 'SEN', 'CZE'] },
+  { label: 'B', teams: ['CAN', 'URU', 'EGY', 'GHA'] },
+  { label: 'C', teams: ['USA', 'CRO', 'NGA', 'JOR'] },
+  { label: 'D', teams: ['ARG', 'JPN', 'AUT', 'IRQ'] },
+  { label: 'E', teams: ['ESP', 'ITA', 'TUN', 'UZB'] },
+  { label: 'F', teams: ['FRA', 'MAR', 'POL', 'CMR'] },
+  { label: 'G', teams: ['ENG', 'KOR', 'ALG', 'CRC'] },
+  { label: 'H', teams: ['BRA', 'ECU', 'KSA', 'PAN'] },
+  { label: 'I', teams: ['POR', 'SUI', 'CIV', 'JAM'] },
+  { label: 'J', teams: ['NED', 'DEN', 'SRB', 'NZL'] },
+  { label: 'K', teams: ['GER', 'AUS', 'TUR', 'PAR'] },
+  { label: 'L', teams: ['BEL', 'IRN', 'NOR', 'TBD'] },
+];
+
 // Bracket: 31 matches in IDs 1..31. See supabase/schema.sql for the layout.
 // Helpers below compute round + parent/child relationships from the ID alone.
 export const ROUND_OF = (id) => {
