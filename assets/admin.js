@@ -77,51 +77,32 @@ function renderMatches() {
 
 function matchCard(m) {
   const round = ROUND_OF(m.id);
-  const opts = (selected) => {
-    const arr = [`<option value="">— pick a team —</option>`];
-    for (const t of TEAMS) {
-      arr.push(`<option value="${t.code}" ${selected === t.code ? 'selected' : ''}>${escape(t.name)}</option>`);
-    }
-    return arr.join('');
-  };
   const winnerOpts = (() => {
     const arr = [`<option value="">— not played —</option>`];
-    [m.team_home, m.team_away].forEach(code => {
-      if (code) {
-        const t = TEAM_BY_CODE[code] || { name: code };
-        arr.push(`<option value="${code}" ${m.winner === code ? 'selected' : ''}>${escape(t.name)}</option>`);
-      }
-    });
+    for (const t of TEAMS) {
+      arr.push(`<option value="${t.code}" ${m.winner === t.code ? 'selected' : ''}>${escape(t.name)}</option>`);
+    }
     return arr.join('');
   })();
 
   return `<div class="admin-match" data-match="${m.id}">
-    <h4>${round} · Match ${m.id} (slot ${m.slot})</h4>
-    <div class="row"><label>Home</label></div>
-    <select data-match="${m.id}" data-field="team_home">${opts(m.team_home)}</select>
-    <div class="row" style="margin-top:8px;"><label>Away</label></div>
-    <select data-match="${m.id}" data-field="team_away">${opts(m.team_away)}</select>
-    <div class="row" style="margin-top:8px;"><label>Winner</label></div>
+    <h4>${round} · Match ${m.id}</h4>
+    <div class="row"><label>Actual winner</label></div>
     <select data-match="${m.id}" data-field="winner">${winnerOpts}</select>
   </div>`;
 }
 
 async function onMatchChange(sel) {
   const id = +sel.dataset.match;
-  const field = sel.dataset.field;
   const value = sel.value || null;
   const m = state.matches.find(x => x.id === id);
-  m[field] = value;
-  // If lineup changed, clear an invalid winner.
-  if ((field === 'team_home' || field === 'team_away') && m.winner) {
-    if (m.winner !== m.team_home && m.winner !== m.team_away) m.winner = null;
-  }
+  m.winner = value;
   const r = await fetch('/api/admin/match', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       password: state.password,
-      id, team_home: m.team_home, team_away: m.team_away, winner: m.winner,
+      id, winner: m.winner,
     }),
   });
   if (!r.ok) {
@@ -129,8 +110,6 @@ async function onMatchChange(sel) {
     return;
   }
   toast('Saved', 'success');
-  // Re-render this card so the winner dropdown reflects the new lineup.
-  renderMatches();
 }
 
 async function onSaveLockout() {
