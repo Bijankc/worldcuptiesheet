@@ -1,84 +1,75 @@
-// 2026 FIFA World Cup — 48 teams.
-// NOTE: this list reflects qualified teams as best known at scaffold time.
-// Update freely as the actual qualifier list firms up. The `code` is the
-// stable identifier we store in the DB; `name` and `flag` are display-only.
+// 2026 FIFA World Cup — actual 48 qualified teams.
+// Codes are FIFA 3-letter codes (stable identifiers stored in DB).
 export const TEAMS = [
   // Hosts
-  { code: 'USA', name: 'United States', flag: 'US' },
   { code: 'CAN', name: 'Canada', flag: 'CA' },
   { code: 'MEX', name: 'Mexico', flag: 'MX' },
-  // CONMEBOL
-  { code: 'ARG', name: 'Argentina', flag: 'AR' },
-  { code: 'BRA', name: 'Brazil', flag: 'BR' },
-  { code: 'URU', name: 'Uruguay', flag: 'UY' },
-  { code: 'COL', name: 'Colombia', flag: 'CO' },
-  { code: 'ECU', name: 'Ecuador', flag: 'EC' },
-  { code: 'PAR', name: 'Paraguay', flag: 'PY' },
-  // UEFA
-  { code: 'ESP', name: 'Spain', flag: 'ES' },
-  { code: 'FRA', name: 'France', flag: 'FR' },
-  { code: 'ENG', name: 'England', flag: 'GB' },
-  { code: 'GER', name: 'Germany', flag: 'DE' },
-  { code: 'ITA', name: 'Italy', flag: 'IT' },
-  { code: 'NED', name: 'Netherlands', flag: 'NL' },
-  { code: 'POR', name: 'Portugal', flag: 'PT' },
-  { code: 'BEL', name: 'Belgium', flag: 'BE' },
-  { code: 'CRO', name: 'Croatia', flag: 'HR' },
-  { code: 'SUI', name: 'Switzerland', flag: 'CH' },
-  { code: 'DEN', name: 'Denmark', flag: 'DK' },
-  { code: 'AUT', name: 'Austria', flag: 'AT' },
-  { code: 'POL', name: 'Poland', flag: 'PL' },
-  { code: 'SRB', name: 'Serbia', flag: 'RS' },
-  { code: 'TUR', name: 'Turkey', flag: 'TR' },
-  { code: 'NOR', name: 'Norway', flag: 'NO' },
-  { code: 'CZE', name: 'Czechia', flag: 'CZ' },
-  // CAF
-  { code: 'MAR', name: 'Morocco', flag: 'MA' },
-  { code: 'SEN', name: 'Senegal', flag: 'SN' },
-  { code: 'EGY', name: 'Egypt', flag: 'EG' },
-  { code: 'TUN', name: 'Tunisia', flag: 'TN' },
+  { code: 'USA', name: 'United States', flag: 'US' },
+  // Other 45 qualified teams (alphabetical)
   { code: 'ALG', name: 'Algeria', flag: 'DZ' },
-  { code: 'NGA', name: 'Nigeria', flag: 'NG' },
-  { code: 'CIV', name: 'Ivory Coast', flag: 'CI' },
-  { code: 'CMR', name: 'Cameroon', flag: 'CM' },
-  { code: 'GHA', name: 'Ghana', flag: 'GH' },
-  // AFC
-  { code: 'JPN', name: 'Japan', flag: 'JP' },
-  { code: 'KOR', name: 'South Korea', flag: 'KR' },
-  { code: 'IRN', name: 'Iran', flag: 'IR' },
+  { code: 'ARG', name: 'Argentina', flag: 'AR' },
   { code: 'AUS', name: 'Australia', flag: 'AU' },
-  { code: 'KSA', name: 'Saudi Arabia', flag: 'SA' },
+  { code: 'AUT', name: 'Austria', flag: 'AT' },
+  { code: 'BEL', name: 'Belgium', flag: 'BE' },
+  { code: 'BIH', name: 'Bosnia and Herzegovina', flag: 'BA' },
+  { code: 'BRA', name: 'Brazil', flag: 'BR' },
+  { code: 'CPV', name: 'Cabo Verde', flag: 'CV' },
+  { code: 'COL', name: 'Colombia', flag: 'CO' },
+  { code: 'COD', name: 'Congo DR', flag: 'CD' },
+  { code: 'CIV', name: "Côte d'Ivoire", flag: 'CI' },
+  { code: 'CRO', name: 'Croatia', flag: 'HR' },
+  { code: 'CUW', name: 'Curaçao', flag: 'CW' },
+  { code: 'CZE', name: 'Czechia', flag: 'CZ' },
+  { code: 'ECU', name: 'Ecuador', flag: 'EC' },
+  { code: 'EGY', name: 'Egypt', flag: 'EG' },
+  { code: 'ENG', name: 'England', flag: 'ENG' },
+  { code: 'FRA', name: 'France', flag: 'FR' },
+  { code: 'GER', name: 'Germany', flag: 'DE' },
+  { code: 'GHA', name: 'Ghana', flag: 'GH' },
+  { code: 'HAI', name: 'Haiti', flag: 'HT' },
+  { code: 'IRN', name: 'IR Iran', flag: 'IR' },
   { code: 'IRQ', name: 'Iraq', flag: 'IQ' },
-  { code: 'UZB', name: 'Uzbekistan', flag: 'UZ' },
+  { code: 'JPN', name: 'Japan', flag: 'JP' },
   { code: 'JOR', name: 'Jordan', flag: 'JO' },
-  // CONCACAF
-  { code: 'CRC', name: 'Costa Rica', flag: 'CR' },
-  { code: 'PAN', name: 'Panama', flag: 'PA' },
-  { code: 'JAM', name: 'Jamaica', flag: 'JM' },
-  // OFC
+  { code: 'KOR', name: 'Korea Republic', flag: 'KR' },
+  { code: 'MAR', name: 'Morocco', flag: 'MA' },
+  { code: 'NED', name: 'Netherlands', flag: 'NL' },
   { code: 'NZL', name: 'New Zealand', flag: 'NZ' },
-  // Playoff slot — replace with actual winner once decided
-  { code: 'TBD', name: 'Inter-confederation playoff', flag: '??' },
+  { code: 'NOR', name: 'Norway', flag: 'NO' },
+  { code: 'PAN', name: 'Panama', flag: 'PA' },
+  { code: 'PAR', name: 'Paraguay', flag: 'PY' },
+  { code: 'POR', name: 'Portugal', flag: 'PT' },
+  { code: 'QAT', name: 'Qatar', flag: 'QA' },
+  { code: 'KSA', name: 'Saudi Arabia', flag: 'SA' },
+  { code: 'SCO', name: 'Scotland', flag: 'SCO' },
+  { code: 'SEN', name: 'Senegal', flag: 'SN' },
+  { code: 'RSA', name: 'South Africa', flag: 'ZA' },
+  { code: 'ESP', name: 'Spain', flag: 'ES' },
+  { code: 'SWE', name: 'Sweden', flag: 'SE' },
+  { code: 'SUI', name: 'Switzerland', flag: 'CH' },
+  { code: 'TUN', name: 'Tunisia', flag: 'TN' },
+  { code: 'TUR', name: 'Türkiye', flag: 'TR' },
+  { code: 'URU', name: 'Uruguay', flag: 'UY' },
+  { code: 'UZB', name: 'Uzbekistan', flag: 'UZ' },
 ];
 
 export const TEAM_BY_CODE = Object.fromEntries(TEAMS.map(t => [t.code, t]));
 
-// 2026 World Cup groups (12 groups of 4). The codes match TEAMS above.
-// Update freely to match the actual draw — this is reference data only,
-// no scoring depends on it.
+// 2026 World Cup groups — actual draw. Each list is in current standings order
+// where known (group winners first), otherwise tournament-order.
 export const GROUPS = [
-  { label: 'A', teams: ['MEX', 'COL', 'SEN', 'CZE'] },
-  { label: 'B', teams: ['CAN', 'URU', 'EGY', 'GHA'] },
-  { label: 'C', teams: ['USA', 'CRO', 'NGA', 'JOR'] },
-  { label: 'D', teams: ['ARG', 'JPN', 'AUT', 'IRQ'] },
-  { label: 'E', teams: ['ESP', 'ITA', 'TUN', 'UZB'] },
-  { label: 'F', teams: ['FRA', 'MAR', 'POL', 'CMR'] },
-  { label: 'G', teams: ['ENG', 'KOR', 'ALG', 'CRC'] },
-  { label: 'H', teams: ['BRA', 'ECU', 'KSA', 'PAN'] },
-  { label: 'I', teams: ['POR', 'SUI', 'CIV', 'JAM'] },
-  { label: 'J', teams: ['NED', 'DEN', 'SRB', 'NZL'] },
-  { label: 'K', teams: ['GER', 'AUS', 'TUR', 'PAR'] },
-  { label: 'L', teams: ['BEL', 'IRN', 'NOR', 'TBD'] },
+  { label: 'A', teams: ['MEX', 'KOR', 'CZE', 'RSA'] },
+  { label: 'B', teams: ['SUI', 'CAN', 'QAT', 'BIH'] },
+  { label: 'C', teams: ['SCO', 'MAR', 'BRA', 'HAI'] },
+  { label: 'D', teams: ['USA', 'AUS', 'TUR', 'PAR'] },
+  { label: 'E', teams: ['GER', 'CIV', 'ECU', 'CUW'] },
+  { label: 'F', teams: ['SWE', 'JPN', 'NED', 'TUN'] },
+  { label: 'G', teams: ['BEL', 'EGY', 'IRN', 'NZL'] },
+  { label: 'H', teams: ['ESP', 'CPV', 'KSA', 'URU'] },
+  { label: 'I', teams: ['FRA', 'IRQ', 'NOR', 'SEN'] },
+  { label: 'J', teams: ['ALG', 'ARG', 'AUT', 'JOR'] },
+  { label: 'K', teams: ['COL', 'COD', 'POR', 'UZB'] },
+  { label: 'L', teams: ['CRO', 'ENG', 'GHA', 'PAN'] },
 ];
 
 // Maps each R32 match (1..16) to the group label whose teams can be picked
