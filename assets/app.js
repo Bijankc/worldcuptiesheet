@@ -59,16 +59,69 @@ async function refreshAll() {
 function renderGroups() {
   const container = document.getElementById('groups-container');
   if (!container) return;
-  container.innerHTML = GROUPS.map(g => `
-    <div class="group-card">
+  const picks = state.profile?.group_picks || {};
+  const editable = !!state.user && state.profile && isPredictionsOpen();
+  container.innerHTML = GROUPS.map(g => {
+    const groupPicks = picks[g.label] || {};
+    // Map team code → rank (1/2/3) for this group
+    const rankOf = Object.fromEntries(
+      Object.entries(groupPicks).map(([rank, code]) => [code, +rank])
+    );
+    return `<div class="group-card">
       <div class="label">Group ${escape(g.label)}</div>
       <ul>
         ${g.teams.map(code => {
           const t = TEAM_BY_CODE[code] || { name: code, flag: '?' };
-          return `<li><span class="flag">${t.flag}</span>${escape(t.name)}</li>`;
+          const rank = rankOf[code];
+          const badge = rank
+            ? `<span class="rank-badge r${rank}">${rank === 1 ? '1st' : rank === 2 ? '2nd' : '3rd'}</span>`
+            : '';
+          const attrs = editable ? `data-group="${g.label}" data-team="${code}"` : '';
+          const cls = ['group-team'];
+          if (rank) cls.push('ranked');
+          if (editable) cls.push('clickable');
+          return `<li class="${cls.join(' ')}" ${attrs}>
+            <span class="flag">${t.flag}</span>
+            <span class="name">${escape(t.name)}</span>
+            ${badge}
+          </li>`;
         }).join('')}
       </ul>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+
+  if (editable) {
+    container.querySelectorAll('[data-group][data-team]').forEach(el => {
+      el.addEventListener('click', () => cycleGroupPick(el.dataset.group, el.dataset.team));
+    });
+  }
+}
+
+// Click a team in a group card to cycle: unranked → 1 → 2 → 3 → unranked.
+// Each rank is unique within a group (assigning 1 to a team unsets it from
+// any other team in the same group).
+async function cycleGroupPick(groupLabel, teamCode) {
+  const picks = JSON.parse(JSON.stringify(state.profile?.group_picks || {}));
+  const groupPicks = picks[groupLabel] || {};
+  // Find current rank of this team in this group
+  const currentRank = Object.entries(groupPicks).find(([_, c]) => c === teamCode)?.[0];
+  const nextRank = currentRank === undefined ? '1'
+    : currentRank === '1' ? '2'
+    : currentRank === '2' ? '3'
+    : null;
+
+  // Remove this team's current rank
+  if (currentRank !== undefined) delete groupPicks[currentRank];
+  // If cycling to a new rank, displace whoever's there and assign
+  if (nextRank !== null) {
+    delete groupPicks[nextRank];
+    groupPicks[nextRank] = teamCode;
+  }
+  picks[groupLabel] = groupPicks;
+  state.profile.group_picks = picks;
+  await sb.from('profiles').update({ group_picks: picks }).eq('id', state.user.id);
+  renderGroups();
+  renderBracket();
 }
 
 // ---------------------------------------------------------------------------
@@ -93,6 +146,7 @@ async function loadProfile() {
     .select('*').eq('id', state.user.id).maybeSingle();
   if (error) return console.error(error);
   state.profile = data; // null if first-time
+  if (state.profile && !state.profile.group_picks) state.profile.group_picks = {};
 }
 
 async function loadPredictions() {
@@ -368,6 +422,30 @@ function matchHtml(m) {
   </div>`;
 }
 
+// Returns the user's eligible teams for one R32 slot (e.g. '1A', '3ABCDF').
+// If the user has marked group qualifiers, restricts to those; otherwise
+// returns the full team list for the slot's source groups.
+function eligibleTeamsForSlot(slotLabel) {
+  const rank = +slotLabel[0];
+  const labels = slotLabel.slice(1).split('');
+  const picks = state.profile?.group_picks || {};
+  const restricted = [];
+  let anyPicks = false;
+  for (const label of labels) {
+    const groupPicks = picks[label] || {};
+    if (groupPicks[String(rank)]) {
+      restricted.push(groupPicks[String(rank)]);
+      anyPicks = true;
+    }
+  }
+  if (anyPicks && restricted.length > 0) return restricted;
+  // Fallback: all teams from these groups
+  return labels.flatMap(label => {
+    const g = GROUPS.find(x => x.label === label);
+    return g ? g.teams : [];
+  });
+}
+
 // Modal: pick a team from any of the groups feeding this R32 match.
 // Excludes teams already picked in other R32 matches (each team can only be
 // in the bracket once).
@@ -375,6 +453,9 @@ function showTeamPicker(matchId) {
   const root = document.getElementById('modal-root');
   const sourceGroups = R32_SOURCE_GROUPS[matchId] || [];
   const fx = R32_FIXTURES[matchId];
+  const eligibleHome = fx ? eligibleTeamsForSlot(fx.home) : [];
+  const eligibleAway = fx ? eligibleTeamsForSlot(fx.away) : [];
+  const eligibleSet = new Set([...eligibleHome, ...eligibleAway]);
   const pool = sourceGroups.flatMap(label => {
     const g = GROUPS.find(x => x.label === label);
     return g ? g.teams : [];
@@ -387,19 +468,25 @@ function showTeamPicker(matchId) {
   const current = state.predictions[matchId] || null;
 
   function render() {
+    const hasQualifierPicks = eligibleSet.size > 0
+      && eligibleSet.size < pool.length;
+    const showOnlyEligible = hasQualifierPicks;
+    const visibleTeams = showOnlyEligible ? pool.filter(c => eligibleSet.has(c)) : pool;
     root.innerHTML = `
       <div class="modal-backdrop">
         <div class="modal">
           <h2>Pick a team — ${escape(fx ? `${fx.home} vs ${fx.away}` : `R32 match ${matchId}`)}</h2>
-          <p class="muted">Choose any team from ${sourceGroups.length > 1
-            ? `Groups ${sourceGroups.join(', ')}`
-            : `Group ${sourceGroups[0] ?? '?'}`}.</p>
+          <p class="muted">${showOnlyEligible
+            ? `Showing only the teams you predicted to qualify from ${sourceGroups.length > 1 ? `Groups ${sourceGroups.join(', ')}` : `Group ${sourceGroups[0]}`}.`
+            : `Choose any team from ${sourceGroups.length > 1 ? `Groups ${sourceGroups.join(', ')}` : `Group ${sourceGroups[0] ?? '?'}`}. Mark group qualifiers in the Groups panel to filter this list.`}</p>
           <div class="country-grid">
             ${sourceGroups.map(label => {
               const g = GROUPS.find(x => x.label === label);
               if (!g) return '';
+              const teamsHere = g.teams.filter(c => visibleTeams.includes(c));
+              if (teamsHere.length === 0) return '';
               return `<div style="grid-column: 1 / -1; font-size:11px; color:var(--muted); margin-top:6px; text-transform:uppercase; letter-spacing:1px;">Group ${escape(label)}</div>` +
-                g.teams.map(code => {
+                teamsHere.map(code => {
                   const t = TEAM_BY_CODE[code] || { code, name: code, flag: '?' };
                   const used = usedElsewhere.has(code);
                   return `<button data-code="${code}"
