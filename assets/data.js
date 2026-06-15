@@ -81,6 +81,16 @@ export const GROUPS = [
   { label: 'L', teams: ['BEL', 'IRN', 'NOR', 'TBD'] },
 ];
 
+// Maps each R32 match (1..16) to the group label whose teams can be picked
+// in that slot. 12 groups × 1 R32 match each + 4 extra matches for the "best
+// third-placed" qualifiers (assigned here to A/B/C/D as a default).
+export const R32_GROUP_BY_MATCH = {
+   1: 'A',  2: 'B',  3: 'C',  4: 'D',
+   5: 'E',  6: 'F',  7: 'G',  8: 'H',
+   9: 'I', 10: 'J', 11: 'K', 12: 'L',
+  13: 'A', 14: 'B', 15: 'C', 16: 'D',
+};
+
 // Bracket: 31 matches in IDs 1..31. See supabase/schema.sql for the layout.
 // Helpers below compute round + parent/child relationships from the ID alone.
 export const ROUND_OF = (id) => {

@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
-import { TEAMS, TEAM_BY_CODE, GROUPS, ROUND_OF, nextMatch, feederMatches } from './data.js';
+import { TEAMS, TEAM_BY_CODE, GROUPS, R32_GROUP_BY_MATCH, ROUND_OF, nextMatch, feederMatches } from './data.js';
 
 const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -321,6 +321,7 @@ function matchHtml(m) {
 
   if (r32FreePick) {
     const t = predicted ? (TEAM_BY_CODE[predicted] || { name: predicted, flag: '?' }) : null;
+    const groupLabel = R32_GROUP_BY_MATCH[m.id];
     const cls = ['team-slot'];
     if (predicted) cls.push('selected');
     if (hasResult && m.winner === predicted) cls.push('actual-winner');
@@ -330,6 +331,7 @@ function matchHtml(m) {
       ? `<span class="name"><span class="flag">${t.flag}</span>${escape(t.name)}</span>`
       : `<span class="name" style="font-style:italic;">Pick a team…</span>`;
     return `<div class="match ${matchClass}">
+      <div class="muted" style="font-size:11px; padding:0 4px 4px;">From Group ${escape(groupLabel || '?')}</div>
       <div class="${cls.join(' ')}" ${attrs}>${content}</div>
     </div>`;
   }
@@ -361,11 +363,14 @@ function matchHtml(m) {
   </div>`;
 }
 
-// Modal: pick any of the 48 teams as the winner of an R32 match.
-// Excludes teams already picked in other R32 matches (each team can only be in
-// the bracket once).
+// Modal: pick a team from the group this R32 match is scoped to.
+// Excludes teams already picked in other R32 matches (each team can only be
+// in the bracket once).
 function showTeamPicker(matchId) {
   const root = document.getElementById('modal-root');
+  const groupLabel = R32_GROUP_BY_MATCH[matchId];
+  const group = GROUPS.find(g => g.label === groupLabel);
+  const pool = group ? group.teams : TEAMS.map(t => t.code);
   const usedElsewhere = new Set(
     state.matches
       .filter(m => m.round === 'R32' && m.id !== matchId && state.predictions[m.id])
@@ -377,13 +382,14 @@ function showTeamPicker(matchId) {
     root.innerHTML = `
       <div class="modal-backdrop">
         <div class="modal">
-          <h2>Pick a team</h2>
-          <p class="muted">Pick the team you predict to win this Round of 32 match.</p>
+          <h2>Pick a team — Group ${escape(groupLabel || '?')}</h2>
+          <p class="muted">Pick a team from this group to advance from Round of 32 match ${matchId}.</p>
           <div class="country-grid">
-            ${TEAMS.map(t => {
-              const used = usedElsewhere.has(t.code);
-              return `<button data-code="${t.code}"
-                class="${current === t.code ? 'selected' : ''}"
+            ${pool.map(code => {
+              const t = TEAM_BY_CODE[code] || { code, name: code, flag: '?' };
+              const used = usedElsewhere.has(code);
+              return `<button data-code="${code}"
+                class="${current === code ? 'selected' : ''}"
                 ${used ? 'disabled style="opacity:0.4;"' : ''}
                 title="${used ? 'Already picked in another R32 match' : ''}">
                 <span class="flag">${t.flag}</span>${escape(t.name)}
