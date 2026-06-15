@@ -78,22 +78,22 @@ export const GROUPS = [
 // Source groups (the union of group letters mentioned in home + away) drives
 // which teams the user can pick in that R32 slot.
 export const R32_FIXTURES = {
-   1: { home: '2A',     away: '2B' },
-   2: { home: '1C',     away: '2F' },
-   3: { home: '1E',     away: '3ABCDF' },
-   4: { home: '1F',     away: '2C' },
-   5: { home: '2E',     away: '2I' },
-   6: { home: '1I',     away: '3CDFGH' },
-   7: { home: '1A',     away: '3CEFHI' },
-   8: { home: '1L',     away: '3EHIJK' },
-   9: { home: '1G',     away: '3AEHIJ' },
-  10: { home: '1D',     away: '3BEFIJ' },
-  11: { home: '1H',     away: '2J' },
-  12: { home: '2K',     away: '2L' },
-  13: { home: '1B',     away: '3EFGIJ' },
-  14: { home: '2D',     away: '2G' },
-  15: { home: '1J',     away: '2H' },
-  16: { home: '1K',     away: '3DEIJL' },
+   1: { home: '2A',     away: '2B' },         // M73
+   2: { home: '1E',     away: '3ABCDF' },     // M74
+   3: { home: '1F',     away: '2C' },         // M75
+   4: { home: '1C',     away: '2F' },         // M76
+   5: { home: '1I',     away: '3CDFGH' },     // M77
+   6: { home: '2E',     away: '2I' },         // M78
+   7: { home: '1A',     away: '3CEFHI' },     // M79
+   8: { home: '1L',     away: '3EHIJK' },     // M80
+   9: { home: '1D',     away: '3BEFIJ' },     // M81
+  10: { home: '1G',     away: '3AEHIJ' },     // M82
+  11: { home: '2K',     away: '2L' },         // M83
+  12: { home: '1H',     away: '2J' },         // M84
+  13: { home: '1B',     away: '3EFGIJ' },     // M85
+  14: { home: '1J',     away: '2H' },         // M86
+  15: { home: '1K',     away: '3DEIJL' },     // M87
+  16: { home: '2D',     away: '2G' },         // M88
 };
 
 // Set of group letters that could feed each R32 match (derived from fixtures).
@@ -112,11 +112,21 @@ export const R32_SOURCE_GROUPS = Object.fromEntries(
 // Differs from the naive "consecutive pairs" rule, especially for R32→R16
 // (M73+M75→R16#1, M74+M77→R16#2, …) and the QF #2/#3 swap.
 export const MATCH_FEEDERS = {
-  17: [1, 3],   18: [2, 5],   19: [4, 6],   20: [7, 8],
-  21: [11, 12], 22: [9, 10],  23: [14, 16], 24: [13, 15],
-  25: [17, 18], 26: [21, 22], 27: [19, 20], 28: [23, 24],
-  29: [25, 26], 30: [27, 28],
-  31: [29, 30],
+  17: [2, 5],   // M89 = W74 vs W77
+  18: [1, 3],   // M90 = W73 vs W75
+  19: [4, 6],   // M91 = W76 vs W78
+  20: [7, 8],   // M92 = W79 vs W80
+  21: [11, 12], // M93 = W83 vs W84
+  22: [9, 10],  // M94 = W81 vs W82
+  23: [14, 16], // M95 = W86 vs W88
+  24: [13, 15], // M96 = W85 vs W87
+  25: [17, 18], // M97 = W89 vs W90
+  26: [21, 22], // M98 = W93 vs W94
+  27: [19, 20], // M99 = W91 vs W92
+  28: [23, 24], // M100 = W95 vs W96
+  29: [25, 26], // M101 = W97 vs W98
+  30: [27, 28], // M102 = W99 vs W100
+  31: [29, 30], // M104 = W101 vs W102
 };
 
 // Inverse of MATCH_FEEDERS — built once at module load.
